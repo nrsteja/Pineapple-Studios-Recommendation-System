@@ -1,0 +1,16 @@
+Flask
+Flask-CORS
+pandas
+numpy
+scikit-learn
+fuzzywuzzy
+python-Levenshtein
+joblib
+openai
+python-dotenv
+asyncio
+async-lru
+regex
+Quart
+quart-cors
+hypercorn

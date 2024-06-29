@@ -1,0 +1,219 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+  // url      = env("DATABASE_URL") //  url  = "file:./dev.db"
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  userName String
+  password String
+
+  recentItemsadded RecentItems[]
+  // Must create a profile whenever create a new user
+  profile          Profile       @relation(fields: [profileId], references: [id]) // references `id` of `Profile`
+  profileId        Int           @unique
+
+  // Must create a library whenever create a new user
+  library   Library @relation(fields: [libraryId], references: [id])
+  libraryId Int     @unique
+
+  tags    Tag[]
+  rate    Rate[]
+  reviews Review[]
+
+  userClickedData UserClickedData[]
+}
+
+model RecentItems {
+  item    Item     @relation(fields: [itemId], references: [id])
+  itemId  Int
+  user    User     @relation(fields: [userId], references: [id])
+  userId  Int
+  addedAt DateTime @default(now())
+
+  @@id([itemId, userId])
+}
+
+model UserClickedData {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  user            User     @relation(fields: [userId], references: [id])
+  itemId          Int
+  numberOfClicked Int      @default(0)
+  timestamp       DateTime @default(now())
+}
+
+model Profile {
+  id             Int                   @id @default(autoincrement())
+  user           User?
+  registeredDate DateTime // handle in createProfile()
+  timeUsedInApp  Int                   @default(0) // Total time used in minute
+  likedItem      Int                   @default(0)
+  preferences    preferenceInProfile[]
+  history        ItemsInProfiles[]
+}
+
+// Define an abstract model called `Item` that serves as the base for movies, books, and songs.
+model Item {
+  id                Int                @id @default(autoincrement())
+  itemType          String // This field specifies the type of item (e.g., "movie", "book", "song")
+  image             String
+  // rateFromApi       Int
+  movie             Movie?
+  book              Book?
+  song              Song?
+  title             String
+  genre             String
+  country           String?
+  publishedDate     String
+  tags              Tag[]
+  language          String
+  avgRate           Float?
+  rate              Rate[]
+  reviews           Review[]
+  People            PeopleInItems[]
+  folder            ItemsInFolders[]
+  libraries         ItemsInLibraries[]
+  recentAddedByUser RecentItems[]
+  Profile           ItemsInProfiles[]
+}
+
+// Define specific models for movies, books, and songs.
+model Movie {
+  srcId       String  @unique // id from datasource
+  duration    Int?
+  description String?
+  itemId      Int     @unique
+  item        Item    @relation(fields: [itemId], references: [id])
+}
+
+model Book {
+  srcId       String  @unique // id from datasource
+  pages       Int?
+  description String?
+  itemId      Int     @unique
+  item        Item    @relation(fields: [itemId], references: [id])
+}
+
+model Song {
+  srcId    String  @unique // id from datasource
+  album    String?
+  duration Int?
+  itemId   Int     @unique
+  item     Item    @relation(fields: [itemId], references: [id])
+}
+
+model PeopleInItems {
+  item     Item     @relation(fields: [itemId], references: [id])
+  itemId   Int
+  people   People   @relation(fields: [peopleId], references: [id])
+  peopleId Int
+  addedAt  DateTime @default(now())
+
+  @@id([itemId, peopleId])
+}
+
+model Tag {
+  id     Int    @id @default(autoincrement())
+  name   String
+  userId Int
+  item   Item   @relation(fields: [itemId], references: [id])
+  itemId Int
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model preference {
+  id      Int                   @id @default(autoincrement())
+  name    String
+  Profile preferenceInProfile[]
+}
+
+model preferenceInProfile {
+  profile      Profile    @relation(fields: [profileId], references: [id])
+  profileId    Int
+  preference   preference @relation(fields: [preferenceId], references: [id])
+  preferenceId Int
+  addedAt      DateTime   @default(now())
+
+  @@id([profileId, preferenceId])
+}
+
+model People {
+  id   Int             @id @default(autoincrement())
+  name String
+  role String
+  item PeopleInItems[]
+}
+
+model Rate {
+  id     Int  @id @default(autoincrement())
+  rating Int
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+  itemId Int
+  item   Item @relation(fields: [itemId], references: [id])
+}
+
+model Review {
+  id      Int    @id @default(autoincrement())
+  content String
+  userId  Int
+  user    User   @relation(fields: [userId], references: [id])
+  itemId  Int
+  item    Item   @relation(fields: [itemId], references: [id])
+}
+
+model Library {
+  id      Int                @id @default(autoincrement())
+  items   ItemsInLibraries[]
+  folders Folder[]
+  user    User?
+}
+
+model ItemsInLibraries {
+  library   Library  @relation(fields: [libraryId], references: [id])
+  libraryId Int
+  item      Item     @relation(fields: [itemId], references: [id])
+  itemId    Int
+  addedAt   DateTime @default(now())
+
+  @@id([libraryId, itemId])
+}
+
+model ItemsInFolders {
+  folder   Folder   @relation(fields: [folderId], references: [id])
+  folderId Int
+  item     Item     @relation(fields: [itemId], references: [id])
+  itemId   Int
+  addedAt  DateTime @default(now())
+
+  @@id([folderId, itemId])
+}
+
+model ItemsInProfiles {
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  profileId Int
+  item      Item     @relation(fields: [itemId], references: [id])
+  itemId    Int
+  addedAt   DateTime @default(now())
+
+  @@id([profileId, itemId])
+}
+
+model Folder {
+  id        Int              @id @default(autoincrement())
+  name      String
+  isSeries  Boolean          @default(false)
+  items     ItemsInFolders[]
+  Library   Library?         @relation(fields: [libraryId], references: [id])
+  libraryId Int?
+}

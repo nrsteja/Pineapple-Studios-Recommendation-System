@@ -1,0 +1,26 @@
+{
+  "extensions": {
+    "recommendations": [
+      "bradlc.vscode-tailwindcss",
+      "esbenp.prettier-vscode",
+      "prisma.prisma",
+      "editorconfig.editorconfig",
+    ],
+  },
+  "folders": [
+    {
+      "path": ".",
+    },
+  ],
+  "settings": {
+    "cSpell.words": [
+      "bradlc",
+      "daisyui",
+      "esbenp",
+      "isbot",
+      "Pipeable",
+      "tailwindcss",
+      "trivago",
+    ],
+  },
+}
